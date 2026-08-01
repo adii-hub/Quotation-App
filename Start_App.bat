@@ -1,0 +1,3 @@
+@echo off
+echo Starting Sivilima Quotation App...
+python -m streamlit run web_app.py
