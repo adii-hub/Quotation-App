@@ -34,7 +34,14 @@ edited_df = st.data_editor(initial_data, num_rows="dynamic", use_container_width
 
 st.divider()
 
-# 3. PDF එක සෑදීමේ බොත්තම
+# 3. අමතර කරුණු (Terms & Conditions) අංශය - අලුතින් එකතු කළ කොටස
+st.header("3. Terms & Conditions (Optional)")
+st.write("අමතර කොන්දේසි (උදා: වගකීම් කාලය, ගෙවීම් විස්තර) ඇත්නම් පහතින් ඇතුළත් කරන්න. එක් කරුණක් සඳහා එක් පේළියක් භාවිතා කරන්න. අවශ්‍ය නැතිනම් හිස්ව තබන්න.")
+terms_input = st.text_area("කරුණු ඇතුළත් කරන්න:", height=100)
+
+st.divider()
+
+# 4. PDF එක සෑදීමේ බොත්තම
 if st.button("Generate Quotation PDF", type="primary"):
     if not c_name:
         st.warning("කරුණාකර පාරිභෝගිකයාගේ නම ඇතුළත් කරන්න.")
@@ -56,14 +63,20 @@ if st.button("Generate Quotation PDF", type="primary"):
                     "qty": float(row.get("Quantity", 0)),
                     "unit_price": float(row.get("Unit Price (LKR)", 0.0))
                 })
+        
+        # Terms & Conditions වෙන් කර ලැයිස්තුවක් (List) එකක් බවට පත් කිරීම
+        terms_list = []
+        if terms_input.strip():
+            # පේළියෙන් පේළිය කඩා, හිස් පේළි ඉවත් කර ගැනීම
+            terms_list = [line.strip() for line in terms_input.split('\n') if line.strip()]
 
         if len(invoice_items) == 0:
             st.error("කරුණාකර එක් භාණ්ඩයක් හෝ ඇතුළත් කරන්න.")
         else:
             pdf_filename = "Sivilima_Quotation.pdf"
             try:
-                # PDF එක සෑදීමට පෙර හැදූ function එක Call කිරීම
-                quotation.generate_quotation_pdf(pdf_filename, customer_info, invoice_items)
+                # PDF එක සෑදීමට පෙර හැදූ function එක Call කිරීම (terms_list ද සමඟ)
+                quotation.generate_quotation_pdf(pdf_filename, customer_info, invoice_items, terms_list)
                 st.success("🎉 PDF එක සාර්ථකව නිර්මාණය විය!")
                 
                 # හදාගත් PDF එක Download කරගැනීමට බොත්තමක් ලබා දීම

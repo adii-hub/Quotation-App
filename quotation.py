@@ -4,7 +4,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
-def generate_quotation_pdf(file_name, customer_data, items):
+def generate_quotation_pdf(file_name, customer_data, items, terms=None):
     # A4 පිටුවේ margins සකස් කිරීම
     doc = SimpleDocTemplate(
         file_name,
@@ -26,7 +26,7 @@ def generate_quotation_pdf(file_name, customer_data, items):
     styles = getSampleStyleSheet()
     
     # ----------------------------------------------------
-    # 1. TOP HEADER (නිවැරදි කළ කොටස)
+    # 1. TOP HEADER 
     # ----------------------------------------------------
     company_title_style = ParagraphStyle(
         'CompanyTitle',
@@ -57,7 +57,7 @@ def generate_quotation_pdf(file_name, customer_data, items):
     # Title එක සහ Address එක එක උඩ එක වැටීම වැළැක්වීමට Spacer එකක් යෙදීම
     company_info = [
         Paragraph("<b>Sivilima - Aluthgama</b>", company_title_style),
-        Spacer(1, 10),  # <--- මෙමගින් මාතෘකාව සහ ලිපිනය අතර හිස් ඉඩක් ලබා දේ
+        Spacer(1, 10),  
         Paragraph("No.111/A, Galle road, Kaluwamodara, Aluthgama.<br/>"
                   "Phone: 0774663177 / 0714188644 | Email: sivilima.aluthgama@gmail.com", company_details_style)
     ]
@@ -72,7 +72,7 @@ def generate_quotation_pdf(file_name, customer_data, items):
     story.append(Spacer(1, 15))
 
     # ----------------------------------------------------
-    # 2. "QUOTATION" BANNER (හරි මැදට ගත් කොටස)
+    # 2. "QUOTATION" BANNER 
     # ----------------------------------------------------
     quotation_banner_style = ParagraphStyle(
         'Banner',
@@ -134,7 +134,6 @@ def generate_quotation_pdf(file_name, customer_data, items):
 
     total_amount = 0.0
 
-    # Auto calculation for line items
     for idx, item in enumerate(items, start=1):
         qty = item.get('qty', 0)
         unit_price = item.get('unit_price', 0.0)
@@ -189,10 +188,31 @@ def generate_quotation_pdf(file_name, customer_data, items):
         ('PADDING', (0,0), (-1,-1), 6),
     ]))
     story.append(total_table)
-    story.append(Spacer(1, 20))
+    story.append(Spacer(1, 15))
 
     # ----------------------------------------------------
-    # 6. FOOTER BANNER
+    # 6. TERMS & CONDITIONS (අලුතින් එකතු කළ කොටස)
+    # ----------------------------------------------------
+    if terms and len(terms) > 0:
+        terms_title_style = ParagraphStyle(
+            'TermsTitle', fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#632c8b"), spaceAfter=6
+        )
+        story.append(Paragraph("<b>Terms & Conditions:</b>", terms_title_style))
+        
+        term_style = ParagraphStyle(
+            'TermText', fontName='Helvetica', fontSize=9, textColor=colors.black, leading=14
+        )
+        
+        for term in terms:
+            # දම් පැහැති තිත් සලකුණ (Purple Bullet Point)
+            bullet_term = f'<font color="#632c8b">&bull;</font> &nbsp;{term}'
+            story.append(Paragraph(bullet_term, term_style))
+            story.append(Spacer(1, 2))
+            
+        story.append(Spacer(1, 15))
+
+    # ----------------------------------------------------
+    # 7. FOOTER BANNER
     # ----------------------------------------------------
     footer_text = """
     <b>Thank you for your business!</b><br/>
@@ -213,20 +233,27 @@ def generate_quotation_pdf(file_name, customer_data, items):
     doc.build(story)
     print(f"PDF සාර්ථකව නිර්මාණය විය: {file_name}")
 
+
 # ==========================================
-#  Run Script
+#  Run Script (කේතය පරීක්ෂා කිරීම සඳහා)
 # ==========================================
+if __name__ == "__main__":
+    customer_info = {
+        "date": "2026-08-02",
+        "name": "aaa",
+        "address": "aa",
+        "phone": "aa"
+    }
 
-customer_info = {
-    "date": "2026-08-02",
-    "name": "aaa",
-    "address": "aa",
-    "phone": "aa"
-}
+    invoice_items = [
+        {"desc": "aa", "qty": 74.0, "unit_price": 47.00},
+        {"desc": "aaa", "qty": 85.0, "unit_price": 47.00},
+    ]
+    
+    # පරීක්ෂා කිරීම සඳහා කොන්දේසි
+    sample_terms = [
+        "10 Years Warranty for specific items.",
+        "Cash transactions only."
+    ]
 
-invoice_items = [
-    {"desc": "aa", "qty": 74.0, "unit_price": 47.00},
-    {"desc": "aaa", "qty": 85.0, "unit_price": 47.00},
-]
-
-generate_quotation_pdf("Quotation_aaa.pdf", customer_info, invoice_items)
+    generate_quotation_pdf("Quotation_aaa.pdf", customer_info, invoice_items, sample_terms)
