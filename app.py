@@ -25,7 +25,17 @@ def add_item():
     
     # Treeview (UI වගුව) වෙත දත්ත ඇතුළත් කිරීම (Amount එකද ගණනය කර පෙන්වයි)
     amount = qty * price
-    tree.insert("", tk.END, values=(desc, qty, price, f"{amount:,.2f}"))
+    # Display quantity as whole number when it's an integer (no trailing .0)
+    try:
+        display_qty = str(int(qty)) if float(qty).is_integer() else str(qty)
+    except Exception:
+        display_qty = str(qty)
+
+    # Format price and amount for display
+    display_price = f"{price:,.2f}"
+    display_amount = f"{amount:,.2f}"
+
+    tree.insert("", tk.END, values=(desc, display_qty, display_price, display_amount))
     
     # ඊළඟ භාණ්ඩය ඇතුළත් කිරීමට පහසු වීමට, කොටු හිස් කිරීම
     desc_entry.delete(0, tk.END)
@@ -75,8 +85,13 @@ def create_pdf():
     }
 
     try:
-        # quotation.py හි ඇති ෆන්ක්ෂන් එකට දත්ත යැවීම
-        quotation.generate_quotation_pdf("Sivilima_Quotation.pdf", customer_info, invoice_items_list)
+        # Read optional remarks and terms from the UI
+        remarks = remarks_text.get("1.0", tk.END).strip()
+        terms_raw = terms_text.get("1.0", tk.END).strip()
+        terms_list = [line.strip() for line in terms_raw.splitlines() if line.strip()]
+
+        # quotation.py හි ඇති ෆන් sähන් එකට දත්ත යැවීම (terms_list සහ remarks සමඟ)
+        quotation.generate_quotation_pdf("Sivilima_Quotation.pdf", customer_info, invoice_items_list, terms_list, remarks=remarks)
         messagebox.showinfo("Success", "PDF එක සාර්ථකව නිර්මාණය විය!")
     except Exception as e:
         messagebox.showerror("Error", f"ගැටළුවක් මතු විය: {e}")
@@ -160,6 +175,15 @@ tree.pack(pady=(10, 5), padx=20, fill="x")
 
 # --- අලුතින් එක් කරන ලද "Delete Selected Item" බොත්තම ---
 tk.Button(root, text="❌ Delete Selected Item", bg="#f59e0b", fg="white", font=("Helvetica", 9, "bold"), command=delete_selected_item).pack(pady=(0, 15))
+
+# Remarks and Terms sections (Optional) - appear only if filled
+tk.Label(root, text="Remarks (Optional):", font=("Helvetica",10,"bold"), fg="#632c8b").pack(anchor="w", padx=20)
+remarks_text = tk.Text(root, height=4, width=60)
+remarks_text.pack(padx=20, pady=(0,10))
+
+tk.Label(root, text="Terms & Conditions (Optional):", font=("Helvetica",10,"bold"), fg="#632c8b").pack(anchor="w", padx=20)
+terms_text = tk.Text(root, height=4, width=60)
+terms_text.pack(padx=20, pady=(0,10))
 
 # 4. Generate සහ Clear බොත්තම්
 frame_buttons = tk.Frame(root)

@@ -34,7 +34,12 @@ edited_df = st.data_editor(initial_data, num_rows="dynamic", use_container_width
 
 st.divider()
 
-# 3. අමතර කරුණු (Terms & Conditions) අංශය - අලුතින් එකතු කළ කොටස
+# Remarks section (Optional) - appears only if filled when generating PDF
+st.header("Remarks (Optional)")
+st.write("නිවේදන/Remarks (අවශ්‍ය නම් පමණක් ඇතුළත් කරන්න). හිස්ව තබනවා නම් PDF එකට එකතු නොකරයි.")
+remarks_input = st.text_area("Remarks:", height=80)
+
+# 3. අමතර කරුණු (Terms & Conditions) අංශය
 st.header("3. Terms & Conditions (Optional)")
 st.write("අමතර කොන්දේසි (උදා: වගකීම් කාලය, ගෙවීම් විස්තර) ඇත්නම් පහතින් ඇතුළත් කරන්න. එක් කරුණක් සඳහා එක් පේළියක් භාවිතා කරන්න. අවශ්‍ය නැතිනම් හිස්ව තබන්න.")
 terms_input = st.text_area("කරුණු ඇතුළත් කරන්න:", height=100)
@@ -75,8 +80,8 @@ if st.button("Generate Quotation PDF", type="primary"):
         else:
             pdf_filename = "Sivilima_Quotation.pdf"
             try:
-                # PDF එක සෑදීමට පෙර හැදූ function එක Call කිරීම (terms_list ද සමඟ)
-                quotation.generate_quotation_pdf(pdf_filename, customer_info, invoice_items, terms_list)
+                # PDF එක සෑදීමට පෙර හැදූ function එක Call කිරීම (terms_list සහ remarks_input ද සමඟ)
+                quotation.generate_quotation_pdf(pdf_filename, customer_info, invoice_items, terms_list, remarks=remarks_input.strip())
                 st.success("🎉 PDF එක සාර්ථකව නිර්මාණය විය!")
                 
                 # හදාගත් PDF එක Download කරගැනීමට බොත්තමක් ලබා දීම

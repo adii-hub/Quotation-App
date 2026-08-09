@@ -4,7 +4,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
-def generate_quotation_pdf(file_name, customer_data, items, terms=None):
+def generate_quotation_pdf(file_name, customer_data, items, terms=None, remarks=None):
     # A4 පිටුවේ margins සකස් කිරීම
     doc = SimpleDocTemplate(
         file_name,
@@ -144,10 +144,20 @@ def generate_quotation_pdf(file_name, customer_data, items, terms=None):
         cell_style_left = ParagraphStyle('TDL', fontName='Helvetica', fontSize=9, alignment=0)
         cell_style_right = ParagraphStyle('TDR', fontName='Helvetica', fontSize=9, alignment=2)
 
+        # Format quantity to show as whole number when appropriate (no trailing .0)
+        try:
+            qf = float(qty)
+            if qf.is_integer():
+                qty_display = str(int(qf))
+            else:
+                qty_display = str(qf)
+        except Exception:
+            qty_display = str(qty) if qty is not None else ""
+
         table_data.append([
             Paragraph(str(idx), cell_style_center),
             Paragraph(item.get('desc', ''), cell_style_left),
-            Paragraph(str(qty) if qty > 0 else "", cell_style_center),
+            Paragraph(qty_display if qty and float(qty) != 0 else "", cell_style_center),
             Paragraph(f"{unit_price:,.2f}" if unit_price > 0 else "", cell_style_right),
             Paragraph(f"{amount:,.2f}" if amount > 0 else "", cell_style_right)
         ])
@@ -191,7 +201,30 @@ def generate_quotation_pdf(file_name, customer_data, items, terms=None):
     story.append(Spacer(1, 15))
 
     # ----------------------------------------------------
-    # 6. TERMS & CONDITIONS (අලුතින් එකතු කළ කොටස)
+    # 6. REMARKS (Optional) - only include if provided
+    # ----------------------------------------------------
+    if remarks and str(remarks).strip():
+        remarks_title_style = ParagraphStyle(
+            'RemarksTitle', fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#632c8b"), spaceAfter=6
+        )
+        story.append(Paragraph("<b>Remarks:</b>", remarks_title_style))
+        # Use same styling as terms for bullet items
+        remarks_term_style = ParagraphStyle('RemarksTerm', fontName='Helvetica', fontSize=9, textColor=colors.black, leading=14)
+
+        for line in str(remarks).split('\n'):
+            clean = line.strip()
+            if not clean:
+                continue
+            # remove any leading bullets/dashes the user may have typed to avoid double bullets
+            while clean.startswith('•') or clean.startswith('-'):
+                clean = clean[1:].lstrip()
+            bullet_line = f'<font color="#632c8b">&bull;</font> &nbsp;{clean}'
+            story.append(Paragraph(bullet_line, remarks_term_style))
+            story.append(Spacer(1, 2))
+        story.append(Spacer(1, 12))
+
+    # ----------------------------------------------------
+    # 7. TERMS & CONDITIONS (Optional)
     # ----------------------------------------------------
     if terms and len(terms) > 0:
         terms_title_style = ParagraphStyle(
