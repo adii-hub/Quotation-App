@@ -4,7 +4,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
-def generate_quotation_pdf(file_name, customer_data, items, terms=None, remarks=None):
+def generate_quotation_pdf(file_name, customer_data, items, terms=None, remarks=None, **kwargs):
     # A4 පිටුවේ margins සකස් කිරීම
     doc = SimpleDocTemplate(
         file_name,
