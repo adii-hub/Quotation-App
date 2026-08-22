@@ -4,15 +4,47 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
+FOOTER_HEIGHT = 76
+FOOTER_SAFE_MARGIN = FOOTER_HEIGHT + 30
+
+
+def draw_fixed_footer(canvas, doc):
+    page_width, _ = A4
+    canvas.saveState()
+    canvas.setFillColor(colors.HexColor("#632c8b"))
+    canvas.rect(0, 0, page_width, FOOTER_HEIGHT, stroke=0, fill=1)
+
+    canvas.setFillColor(colors.white)
+    canvas.setFont("Helvetica-Bold", 11)
+    canvas.drawCentredString(page_width / 2, FOOTER_HEIGHT - 20, "Thank you for your business!")
+
+    canvas.setFillColor(colors.HexColor("#d8b4fe"))
+    canvas.setFont("Helvetica", 7)
+    canvas.drawCentredString(
+        page_width / 2,
+        FOOTER_HEIGHT - 36,
+        "We look forward to serving you and building a lasting partnership.",
+    )
+
+    canvas.setFillColor(colors.white)
+    canvas.setFont("Helvetica-Bold", 7)
+    canvas.drawCentredString(
+        page_width / 2,
+        FOOTER_HEIGHT - 56,
+        "For inquiries: sivilima.aluthgama@gmail.com  |  0774663144 / 0714188644",
+    )
+    canvas.restoreState()
+
+
 def generate_quotation_pdf(file_name, customer_data, items, terms=None, remarks=None, **kwargs):
-    # A4 පිටුවේ margins සකස් කිරීම
+    # A4 page margins, leaving enough room for the fixed footer on every page
     doc = SimpleDocTemplate(
         file_name,
         pagesize=A4,
         rightMargin=36,
         leftMargin=36,
         topMargin=36,
-        bottomMargin=36
+        bottomMargin=FOOTER_SAFE_MARGIN,
     )
 
     story = []
@@ -245,26 +277,11 @@ def generate_quotation_pdf(file_name, customer_data, items, terms=None, remarks=
         story.append(Spacer(1, 15))
 
     # ----------------------------------------------------
-    # 7. FOOTER BANNER
+    # 8. FIXED FOOTER ON EVERY PAGE
     # ----------------------------------------------------
-    footer_text = """
-    <b>Thank you for your business!</b><br/>
-    <font size="7" color="#d8b4fe">We look forward to serving you and building a lasting partnership.</font><br/><br/>
-    <font size="7" color="#ffffff">For inquiries: sivilima.aluthgama@gmail.com  |  0774663177 / 0714188644</font>
-    """
-    footer_style = ParagraphStyle('FS', fontName='Helvetica-Bold', textColor=colors.white, fontSize=11, alignment=1, leading=12)
-    
-    footer_table = Table([[Paragraph(footer_text, footer_style)]], colWidths=[520])
-    footer_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), PURPLE_HEADER),
-        ('TOPPADDING', (0,0), (-1,-1), 10),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
-    ]))
-    story.append(footer_table)
-
     # PDF එක නිර්මාණය කිරීම
-    doc.build(story)
-    print(f"PDF සාර්ථකව නිර්මාණය විය: {file_name}")
+    doc.build(story, onFirstPage=draw_fixed_footer, onLaterPages=draw_fixed_footer)
+    print(f"PDF generated successfully: {file_name}")
 
 
 # ==========================================
